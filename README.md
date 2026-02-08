@@ -61,7 +61,11 @@ VirtualBox w trybie domyślnym próbuje wykonać "Unattended Installation", mont
 ---
 
 ## 📸 Screenshots
-*(Tutaj wklej zrzuty ekranu, np. widok Server Managera, wynik polecenia `ipconfig /all` na kliencie, lub skan z Nmapa)*
+![jan kowalski windows](https://github.com/user-attachments/assets/6c14f60c-eb46-40cf-82f1-972c9386ef7d)
+![system jan kowalski ](https://github.com/user-attachments/assets/38523fb0-5414-4ea9-8b0f-97a8e2109545)
+![ipconfig Jan Kowalski](https://github.com/user-attachments/assets/0c6dd968-f1a6-418e-af02-fdb8e447ce02)
+![domena Windows Serwer](https://github.com/user-attachments/assets/a6931bf4-f36d-4602-8d7a-378ebe8f4e97)
+
 
 ---
 
