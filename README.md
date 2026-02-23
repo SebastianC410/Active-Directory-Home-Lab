@@ -75,3 +75,55 @@ Planowany rozwój laboratorium:
 - [ ] Konfiguracja Group Policy Objects (GPO) - np. blokada Panelu Sterowania, tapeta firmowa.
 - [ ] Wdrożenie serwera plików (File Server) i mapowanie dysków.
 - [ ] Testy penetracyjne Active Directory (np. ataki na SMB).
+
+
+
+# 🛠️ Enterprise Windows Infrastructure Lab
+**Lokalne Środowisko Domenowe Active Directory**
+
+## 📖 Opis projektu
+Projekt skupia się na budowie, konfiguracji i zabezpieczaniu infrastruktury IT opartej o systemy Microsoft Windows. Celem jest symulacja rzeczywistych scenariuszy administracyjnych w środowisku korporacyjnym.
+
+---
+
+## 🏗️ Architektura Systemu
+* **Domena:** `cyberlab.local`
+* **Kontroler Domeny:** Windows Server 2022 (IP: `10.0.2.10`)
+* **Stacja Robocza:** Windows 10 Pro (Użytkownik: `jan.kowalski`)
+* **Sieć:** VirtualBox Internal Network z dostępem do Internetu przez NAT
+
+---
+
+## 🚀 Zrealizowane Kamienie Milowe
+
+### 1. Zarządzanie Zasobami i Personalizacją (GPO)
+Wdrożono scentralizowane zarządzanie stacjami roboczymi przy użyciu **Group Policy Management**:
+* **Firmowa Tapeta:** Automatyczne wymuszenie tła pulpitu z zasobu sieciowego `\\10.0.2.10\Zasoby\tapeta.jpg`.
+* **Mapowanie Dysków:** Automatyczne podmontowanie dysku sieciowego **Z:** wskazującego na folder `\\10.0.2.10\Dane` przy użyciu **GPO Preferences**.
+
+### 2. Cyberbezpieczeństwo i Kontrola Dostępu
+* **Blokada Magazynów Wymiennych:** Skonfigurowano restrykcyjną polisę `All Removable Storage classes: Deny all access`. 
+* **Efekt:** Całkowite zablokowanie możliwości odczytu/zapisu na urządzeniach USB dla użytkowników nieuprawnionych.
+
+### 3. Zaawansowany Troubleshooting (Case Studies)
+Podczas sesji rozwiązano krytyczne problemy techniczne:
+* **Błąd Kerberos (Clock Skew):** Naprawiono brak synchronizacji czasu między klientem a serwerem, co blokowało logowanie i aktualizację zasad.
+* **Naprawa usługi W32Time:** Rozwiązano błąd systemowy **1058** (usługa wyłączona) oraz błąd braku danych synchronizacji.
+
+---
+
+## 💻 Technical Cheat Sheet (Użyte komendy)
+
+### Diagnostyka GPO
+```powershell
+gpupdate /force       # Wymuszenie natychmiastowej aktualizacji zasad
+gpresult /r           # Wyświetlenie raportu zastosowanych polis (RSOP)
+
+
+:: Odblokowanie i start usługi czasu
+sc config w32time start= auto
+net start w32time
+
+:: Wymuszenie synchronizacji z hierarchii domeny
+w32tm /config /syncfromflags:domhier /update
+w32tm /resync
