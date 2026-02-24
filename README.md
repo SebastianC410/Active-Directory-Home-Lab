@@ -157,42 +157,58 @@ Folder `C:\dane` na serwerze został skonfigurowany zgodnie z zasadą **Least Pr
 
 ---
 
-## 🛠️ Raport z Troubleshootingu (Case Studies)
+🛡️ Enterprise Windows Infrastructure & Security Lab - Sesja 2
+Środowisko: Windows Server 2022 | Windows 10 Pro | Active Directory
 
-Podczas wdrażania napotkano i rozwiązano szereg problemów komunikacyjnych:
+📖 Przegląd Sesji
+Druga faza projektu skupiła się na wdrożeniu zaawansowanych mechanizmów kontroli dostępu, optymalizacji struktury Active Directory oraz przeprowadzeniu audytu bezpieczeństwa protokołu SMB. Kluczowym elementem było rozwiązanie problemów z komunikacją RPC oraz hardening systemu poprzez wyłączenie podatnych protokołów uwierzytelniania.
 
-1. **Problem z RPC (Błąd 800706ba / 8007071a):**
-   * **Objaw:** Serwer nie mógł zdalnie wymusić aktualizacji GPO.
-   * **Przyczyna:** Blokada portów RPC i WMI przez Firewall na stacji roboczej.
-   * **Rozwiązanie:** Odblokowanie reguł "Remote Scheduled Tasks Management" oraz "WMI" na Windows 10.
+🏗️ Zarządzanie Strukturą i GPO (Active Directory)
+1. Reorganizacja Jednostek Organizacyjnych (OU)
+W celu umożliwienia precyzyjnego stosowania zasad grupy, obiekty komputerowe (np. comp1.cyberlab.local) zostały przeniesione z domyślnego kontenera do dedykowanej struktury OU.
 
-2. **Błąd Wielu Połączeń (Błąd 1219):**
-   * **Objaw:** System Windows odrzucił próbę połączenia anonimowego podczas aktywnych sesji użytkownika.
-   * **Rozwiązanie:** Wyczyszczenie aktywnych sesji komendą `net use * /delete` przed przeprowadzeniem audytu bezpieczeństwa.
+Rozwiązano problem braku widoczności stacji roboczych przez serwer podczas zdalnego odświeżania polis.
 
----
+2. Group Policy Preferences (GPP)
+Wykorzystano Preferencje GPO do automatyzacji środowiska użytkownika:
 
-## 🕵️ Audyt Bezpieczeństwa (SMB Security Test)
+Skonfigurowano mapowanie dysków sieciowych w sekcji User Configuration -> Preferences -> Windows Settings -> Drive Maps.
 
-Przeprowadzono testy penetracyjne protokołu SMB w celu wykrycia podatności na ataki typu *Null Session*:
-* **Wynik testu:** Próba anonimowego logowania zakończyła się błędem **1937**.
-* **Wniosek:** Środowisko jest bezpieczne. Protokół **NTLM został wyłączony** na rzecz Kerberosa, co uniemożliwia hakerom anonimowy rekonesans zasobów sieciowych.
+Wdrożono blokadę Panelu Sterowania oraz Ustawień systemowych dla jednostki OU "Pracownicy".
 
----
+🔒 Bezpieczeństwo Danych i Uprawnienia NTFS
+Folder zasobów C:\dane został zabezpieczony zgodnie z modelem Least Privilege:
 
-## 💻 Wykorzystane Narzędzia i Komendy
+Wyłączenie dziedziczenia: Usunięto dziedziczenie uprawnień z nadrzędnego systemu plików (Inherited from: None).
 
-### Zarządzanie Siecią
-```cmd
-:: Usuwanie sesji przed testami security
+Hardening NTFS: Dostęp do zasobów został ograniczony wyłącznie do dedykowanych grup bezpieczeństwa, co potwierdza stan przycisku "Enable inheritance" (obecnie wyłączone).
+
+🛠️ Case Studies: Troubleshooting Techniczny
+Podczas sesji zdiagnozowano i rozwiązano krytyczne błędy komunikacji:
+
+Błąd	Opis Problemu	Rozwiązanie
+8007071a / 800706ba	"The RPC server is unavailable" - blokada zdalnego GPUpdate.	Odblokowanie reguł RPC/WMI w zaporze Windows Defender oraz weryfikacja profilu sieciowego.
+System error 1219	Konflikt wielu sesji użytkownika z jednym zasobem sieciowym.	Zastosowanie komendy net use * /delete w celu wyczyszczenia aktywnych sesji przed audytem.
+
+Eksportuj do Arkuszy
+
+🕵️ Audyt Bezpieczeństwa (SMB Security Recon)
+Przeprowadzono testy penetracyjne mające na celu wykrycie podatności na ataki typu Null Session (anonimowe logowanie):
+
+Wynik testu: Próba nawiązania sesji anonimowej zakończyła się błędem System error 1937.
+
+Analiza: Serwer skutecznie odrzucił połączenie z powodu wymuszenia bezpiecznych protokołów i całkowitego wyłączenia uwierzytelniania NTLM na rzecz Kerberosa.
+
+Wniosek: Środowisko jest odporne na podstawowe techniki rekonesansu SMB i ataki typu Relay.
+
+💻 Technical Cheat Sheet (Admin Commands)
+DOS
+
+:: Diagnostyka i czyszczenie sesji sieciowych
 net use * /delete
-
-:: Testowanie połączenia Null Session
 net use \\10.0.2.10\ipc$ "" /u:""
 
-PowerShell
-
+:: Zarządzanie zaporą (PowerShell)
 Enable-NetFirewallRule -DisplayGroup "Remote Scheduled Tasks Management"
 Enable-NetFirewallRule -DisplayGroup "Windows Management Instrumentation (WMI)"
 
-SS:
