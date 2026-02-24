@@ -127,3 +127,72 @@ net start w32time
 :: Wymuszenie synchronizacji z hierarchii domeny
 w32tm /config /syncfromflags:domhier /update
 w32tm /resync
+# 🛡️ Enterprise Windows Infrastructure & Security Lab
+**Środowisko: Windows Server 2022 | Windows 10 Pro | Active Directory**
+
+## 📖 Przegląd Projektu
+Projekt skupia się na budowie bezpiecznej infrastruktury domenowej, implementacji zaawansowanych zasad grup (GPO) oraz audycie bezpieczeństwa protokołów sieciowych. Lab symuluje rzeczywiste wyzwania administratora systemów, łącząc konfigurację usług z rozwiązywaniem problemów (troubleshooting).
+
+---
+
+## 🏗️ Architektura i Zarządzanie (OU & GPO)
+
+### 1. Struktura Organizacyjna (OU)
+Zaimplementowano hierarchiczną strukturę w Active Directory, dzieląc zasoby na jednostki organizacyjne (OU), co pozwala na precyzyjne stosowanie polityk bezpieczeństwa.
+* Obiekty komputerowe (np. `comp1`) zostały przeniesione do dedykowanych jednostek OU, aby umożliwić zdalne zarządzanie.
+
+### 2. Group Policy Preferences (GPO)
+Wdrożono mapowanie dysków sieciowych przy użyciu **Group Policy Preferences** (GPP).
+* Wykorzystano sekcję `User Configuration -> Preferences -> Windows Settings -> Drive Maps` do automatycznego montowania zasobów dla pracowników.
+
+---
+
+## 🔒 Bezpieczeństwo Danych (File Server & NTFS)
+
+Folder `C:\dane` na serwerze został skonfigurowany zgodnie z zasadą **Least Privilege**:
+* **Wyłączenie dziedziczenia:** Usunięto dziedziczenie uprawnień z nadrzędnego dysku (Inherited from: **None**), co widać po dostępnym przycisku "Enable inheritance".
+* **Precyzyjna kontrola:** Dostęp został ograniczony wyłącznie do dedykowanych grup bezpieczeństwa (np. `GG_Dostep_Dane`), eliminując domyślne uprawnienia dla grupy `Everyone`.
+
+
+
+---
+
+## 🛠️ Raport z Troubleshootingu (Case Studies)
+
+Podczas wdrażania napotkano i rozwiązano szereg problemów komunikacyjnych:
+
+1. **Problem z RPC (Błąd 800706ba / 8007071a):**
+   * **Objaw:** Serwer nie mógł zdalnie wymusić aktualizacji GPO.
+   * **Przyczyna:** Blokada portów RPC i WMI przez Firewall na stacji roboczej.
+   * **Rozwiązanie:** Odblokowanie reguł "Remote Scheduled Tasks Management" oraz "WMI" na Windows 10.
+
+2. **Błąd Wielu Połączeń (Błąd 1219):**
+   * **Objaw:** System Windows odrzucił próbę połączenia anonimowego podczas aktywnych sesji użytkownika.
+   * **Rozwiązanie:** Wyczyszczenie aktywnych sesji komendą `net use * /delete` przed przeprowadzeniem audytu bezpieczeństwa.
+
+---
+
+## 🕵️ Audyt Bezpieczeństwa (SMB Security Test)
+
+Przeprowadzono testy penetracyjne protokołu SMB w celu wykrycia podatności na ataki typu *Null Session*:
+* **Wynik testu:** Próba anonimowego logowania zakończyła się błędem **1937**.
+* **Wniosek:** Środowisko jest bezpieczne. Protokół **NTLM został wyłączony** na rzecz Kerberosa, co uniemożliwia hakerom anonimowy rekonesans zasobów sieciowych.
+
+---
+
+## 💻 Wykorzystane Narzędzia i Komendy
+
+### Zarządzanie Siecią
+```cmd
+:: Usuwanie sesji przed testami security
+net use * /delete
+
+:: Testowanie połączenia Null Session
+net use \\10.0.2.10\ipc$ "" /u:""
+
+PowerShell
+
+Enable-NetFirewallRule -DisplayGroup "Remote Scheduled Tasks Management"
+Enable-NetFirewallRule -DisplayGroup "Windows Management Instrumentation (WMI)"
+
+SS:
